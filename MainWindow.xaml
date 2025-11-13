@@ -1,0 +1,263 @@
+<Window x:Class="SQLBackupRestore.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SQLBackupRestore"
+        xmlns:models="clr-namespace:SQLBackupRestore.Models"
+        mc:Ignorable="d"
+        Title="SQL .BAK Restore Tool"
+        Height="850"
+        Width="900"
+        MinHeight="700"
+        MinWidth="800"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize">
+
+    <Window.Resources>
+        <!-- Converter for boolean to visibility -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <!-- Style for validation error text -->
+        <Style x:Key="ErrorTextBlock" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <!-- Style for success text -->
+        <Style x:Key="SuccessTextBlock" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+
+        <!-- Style for info label -->
+        <Style x:Key="InfoLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="*"/>    <!-- Content -->
+        </Grid.RowDefinitions>
+
+        <!-- Header Section -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="SQL .BAK Restore Tool"
+                       Style="{StaticResource HeaderTextBlock}"/>
+            <TextBlock Text="Restore Office/Shop databases in a few clicks"
+                       Style="{StaticResource SubHeaderTextBlock}"
+                       Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- SQL Connection Section -->
+                <GroupBox Header="SQL Server Connection">
+                    <StackPanel>
+                        <!-- Server Instance -->
+                        <Label Content="SQL Server Instance:" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding SqlServerInstance, UpdateSourceTrigger=PropertyChanged}"
+                                 IsEnabled="{Binding CanModifySettings}"
+                                 ToolTip="e.g., localhost, (local), .\SQLEXPRESS"/>
+
+                        <!-- Authentication Type -->
+                        <Label Content="Authentication:" FontWeight="SemiBold" Margin="0,12,0,0"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <RadioButton Content="Windows Authentication"
+                                        IsChecked="{Binding AuthenticationType, Converter={x:Static local:EnumToBooleanConverter.Instance}, ConverterParameter={x:Static models:AuthenticationType.Windows}}"
+                                        IsEnabled="{Binding CanModifySettings}"
+                                        Margin="0,0,20,0"/>
+                            <RadioButton Content="SQL Server Authentication"
+                                        IsChecked="{Binding AuthenticationType, Converter={x:Static local:EnumToBooleanConverter.Instance}, ConverterParameter={x:Static models:AuthenticationType.SqlServer}}"
+                                        IsEnabled="{Binding CanModifySettings}"/>
+                        </StackPanel>
+
+                        <!-- SQL Authentication Fields -->
+                        <StackPanel Visibility="{Binding IsSqlAuthentication, Converter={StaticResource BoolToVisibility}}"
+                                    Margin="0,12,0,0">
+                            <Label Content="Username:" FontWeight="SemiBold"/>
+                            <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                                    IsEnabled="{Binding CanModifySettings}"/>
+
+                            <Label Content="Password:" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                            <PasswordBox x:Name="PasswordBox"
+                                        IsEnabled="{Binding CanModifySettings}"
+                                        PasswordChanged="PasswordBox_OnPasswordChanged"/>
+                        </StackPanel>
+
+                        <!-- Test Connection Button -->
+                        <Button Content="Test Connection"
+                                Command="{Binding TestConnectionCommand}"
+                                HorizontalAlignment="Left"
+                                Margin="0,12,0,0"
+                                Padding="20,8"/>
+
+                        <!-- Connection Status -->
+                        <TextBlock Text="{Binding ConnectionStatus}"
+                                  Margin="0,8,0,0"
+                                  FontWeight="SemiBold"
+                                  Visibility="{Binding ConnectionStatus, Converter={StaticResource StringToVisibilityConverter}}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsConnectionSuccessful}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Backup File Selection Section -->
+                <GroupBox Header="Backup File Selection" Margin="0,12,0,0">
+                    <StackPanel>
+                        <Button Content="Browse .BAK File..."
+                                Command="{Binding BrowseBackupFileCommand}"
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource SecondaryButton}"
+                                Padding="20,8"/>
+
+                        <Label Content="Selected File:" FontWeight="SemiBold" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding BackupFilePath, Mode=OneWay}"
+                                IsReadOnly="True"
+                                Background="#F5F5F5"
+                                ToolTip="{Binding BackupFilePath}"/>
+
+                        <StackPanel Visibility="{Binding BackupBaseName, Converter={StaticResource StringToVisibilityConverter}}"
+                                    Margin="0,8,0,0">
+                            <Label Content="Detected Backup Name:" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding BackupBaseName}"
+                                      Style="{StaticResource InfoLabel}"
+                                      FontWeight="SemiBold"
+                                      FontSize="13"/>
+                        </StackPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Database Type Selection Section -->
+                <GroupBox Header="Database Type" Margin="0,12,0,0">
+                    <StackPanel>
+                        <Label Content="Select the type of database:" FontWeight="SemiBold"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <RadioButton Content="Office"
+                                        IsChecked="{Binding DatabaseType, Converter={x:Static local:EnumToBooleanConverter.Instance}, ConverterParameter={x:Static models:DatabaseType.Office}}"
+                                        IsEnabled="{Binding CanModifySettings}"
+                                        Margin="0,0,30,0"
+                                        FontSize="14"/>
+                            <RadioButton Content="Shop"
+                                        IsChecked="{Binding DatabaseType, Converter={x:Static local:EnumToBooleanConverter.Instance}, ConverterParameter={x:Static models:DatabaseType.Shop}}"
+                                        IsEnabled="{Binding CanModifySettings}"
+                                        FontSize="14"/>
+                        </StackPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Database Details Section -->
+                <GroupBox Header="Database Details" Margin="0,12,0,0">
+                    <StackPanel>
+                        <Label Content="Database Name:" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding DatabaseName, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{Binding CanModifySettings}"
+                                ToolTip="The name for the restored database"/>
+
+                        <Label Content="Planned Data File Folder (E: Drive):" FontWeight="SemiBold" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding DataFileFolder, Mode=OneWay}"
+                                IsReadOnly="True"
+                                Background="#F5F5F5"
+                                FontFamily="Consolas"/>
+
+                        <Label Content="Planned Log File Folder (F: Drive):" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                        <TextBox Text="{Binding LogFileFolder, Mode=OneWay}"
+                                IsReadOnly="True"
+                                Background="#F5F5F5"
+                                FontFamily="Consolas"/>
+
+                        <!-- Replace Existing Database Option -->
+                        <CheckBox Content="Replace existing database if it exists"
+                                 IsChecked="{Binding ReplaceExistingDatabase}"
+                                 IsEnabled="{Binding CanModifySettings}"
+                                 Margin="0,12,0,0"
+                                 FontWeight="SemiBold"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Actions & Status Section -->
+                <GroupBox Header="Restore Operation" Margin="0,12,0,0">
+                    <StackPanel>
+                        <!-- Restore Button -->
+                        <Button Content="Restore Database"
+                                Command="{Binding RestoreDatabaseCommand}"
+                                Style="{StaticResource SuccessButton}"
+                                HorizontalAlignment="Left"
+                                Padding="30,10"
+                                FontSize="15"
+                                Margin="0,0,0,12"/>
+
+                        <!-- Progress Bar -->
+                        <ProgressBar Height="24"
+                                    Value="{Binding ProgressValue}"
+                                    IsIndeterminate="{Binding IsProgressIndeterminate}"
+                                    Visibility="{Binding IsRestoring, Converter={StaticResource BoolToVisibility}}"
+                                    Margin="0,0,0,12"/>
+
+                        <!-- Log Panel -->
+                        <Label Content="Operation Log:" FontWeight="SemiBold"/>
+                        <Border BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1"
+                                Background="White"
+                                CornerRadius="4">
+                            <ScrollViewer Height="250"
+                                         VerticalScrollBarVisibility="Auto"
+                                         HorizontalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding LogEntries}"
+                                             Padding="8">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding FormattedMessage}"
+                                                      FontFamily="Consolas"
+                                                      FontSize="11"
+                                                      TextWrapping="Wrap"
+                                                      Margin="0,1">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#333333"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Level}" Value="Success">
+                                                                <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Level}" Value="Error">
+                                                                <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+                                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Level}" Value="Warning">
+                                                                <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+                </GroupBox>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

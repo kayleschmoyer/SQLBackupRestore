@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <AssemblyName>SQLBackupRestore</AssemblyName>
+    <RootNamespace>SQLBackupRestore</RootNamespace>
+    <Version>1.0.0</Version>
+    <Authors>SQL Backup Restore Tool</Authors>
+    <Company>SQL Backup Restore Tool</Company>
+    <Product>SQL Backup Restore Tool</Product>
+    <Description>A WPF application to restore SQL Server databases from .bak files</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+  </ItemGroup>
+
+</Project>
