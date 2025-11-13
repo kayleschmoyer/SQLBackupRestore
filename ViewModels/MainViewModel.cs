@@ -22,12 +22,13 @@ namespace SQLBackupRestore.ViewModels
         private readonly SqlRestoreService _sqlRestoreService;
 
         // SQL Connection fields
-        private string _sqlServerInstance = "(local)";
+        private string _sqlServerInstance = "VastOffice"; // Default to VastOffice instance
         private AuthenticationType _authenticationType = AuthenticationType.Windows;
         private string _username = string.Empty;
         private string _password = string.Empty;
         private string _connectionStatus = string.Empty;
         private bool _isConnectionSuccessful;
+        private string _currentWindowsUser = string.Empty;
 
         // Backup file fields
         private string _backupFilePath = string.Empty;
@@ -61,7 +62,10 @@ namespace SQLBackupRestore.ViewModels
             BrowseBackupFileCommand = new RelayCommand(_ => BrowseBackupFile());
             RestoreDatabaseCommand = new RelayCommand(async _ => await RestoreDatabaseAsync(), _ => CanRestoreDatabase());
 
-            // Initialize - detect SQL instances
+            // Detect current Windows user
+            _currentWindowsUser = Environment.UserName;
+
+            // Initialize - detect SQL instances and auto-connect
             _ = InitializeAsync();
         }
 
@@ -190,9 +194,19 @@ namespace SQLBackupRestore.ViewModels
             {
                 if (SetProperty(ref _databaseType, value))
                 {
+                    UpdateInstanceBasedOnType();
                     UpdatePlannedFolders();
                 }
             }
+        }
+
+        /// <summary>
+        /// Current Windows user logged in.
+        /// </summary>
+        public string CurrentWindowsUser
+        {
+            get => _currentWindowsUser;
+            private set => SetProperty(ref _currentWindowsUser, value);
         }
 
         /// <summary>
@@ -452,9 +466,9 @@ namespace SQLBackupRestore.ViewModels
                     ReplaceExistingDatabase = true;
                 }
 
-                // Build file paths
-                var dataFilePath = Path.Combine(DataFileFolder, $"{DatabaseName}.mdf");
-                var logFilePath = Path.Combine(LogFileFolder, $"{DatabaseName}_log.ldf");
+                // Build file paths with hardcoded names
+                var dataFilePath = Path.Combine(DataFileFolder, "VastOffice.mdf");
+                var logFilePath = Path.Combine(LogFileFolder, "VastOffice_log.ldf");
 
                 // Perform restore
                 var success = await _sqlRestoreService.RestoreDatabaseAsync(
@@ -514,18 +528,35 @@ namespace SQLBackupRestore.ViewModels
         {
             try
             {
-                // Try to detect SQL instances
-                var instances = await _sqlRestoreService.DetectSqlInstancesAsync();
-                if (instances.Any())
-                {
-                    // Use first detected instance
-                    SqlServerInstance = instances.First();
-                }
+                AddLogEntry($"👋 Welcome {_currentWindowsUser}! Let's restore your database!", LogLevel.Info);
+                AddLogEntry("🔍 Detecting your SQL Server...", LogLevel.Info);
+
+                // Default to VastOffice instance
+                SqlServerInstance = "VastOffice";
+
+                // Try to auto-connect with Windows authentication
+                await Task.Delay(500); // Small delay for visual effect
+                AddLogEntry("🔐 Using Windows Authentication (you're already logged in!)", LogLevel.Info);
+
+                // Auto-test connection
+                await TestConnectionAsync();
             }
             catch
             {
                 // Ignore errors during initialization
             }
+        }
+
+        private void UpdateInstanceBasedOnType()
+        {
+            // Update SQL instance based on database type
+            SqlServerInstance = DatabaseType == DatabaseType.Office ? "VastOffice" : "VastPOS";
+
+            // Reset connection status when changing instance
+            ConnectionStatus = string.Empty;
+            IsConnectionSuccessful = false;
+
+            AddLogEntry($"🔄 Switched to {SqlServerInstance} instance", LogLevel.Info);
         }
 
         private void UpdateBackupBaseName()
