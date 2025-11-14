@@ -555,7 +555,7 @@ namespace SQLBackupRestore.ViewModels
         private void UpdateInstanceBasedOnType()
         {
             // Update SQL instance based on database type
-            SqlServerInstance = DatabaseType == DatabaseType.Office ? "VastOffice" : "VastPOS";
+            SqlServerInstance = DatabaseType == DatabaseType.Office ? ".\\VastOffice" : ".\\VastPOS";
 
             // Reset connection status when changing instance
             ConnectionStatus = string.Empty;
