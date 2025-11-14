@@ -36,19 +36,19 @@ namespace SQLBackupRestore.Services
         {
             try
             {
-                LogMessage("Testing connection to SQL Server...", LogLevel.Info);
+                LogMessage("🔌 Testing connection to SQL Server...", LogLevel.Info);
 
                 var connectionString = BuildConnectionString(serverInstance, authType, username, password, "master");
 
                 using var connection = new SqlConnection(connectionString);
                 await connection.OpenAsync();
 
-                LogMessage($"Successfully connected to {serverInstance}", LogLevel.Success);
+                LogMessage($"✅ Woohoo! Successfully connected to {serverInstance}!", LogLevel.Success);
                 return true;
             }
             catch (Exception ex)
             {
-                LogMessage($"Connection failed: {ex.Message}", LogLevel.Error);
+                LogMessage($"❌ Oops! Connection failed: {ex.Message}", LogLevel.Error);
                 return false;
             }
         }
@@ -67,7 +67,7 @@ namespace SQLBackupRestore.Services
 
             try
             {
-                LogMessage($"Reading backup file structure from: {Path.GetFileName(backupFilePath)}", LogLevel.Info);
+                LogMessage($"📂 Reading backup file: {Path.GetFileName(backupFilePath)}", LogLevel.Info);
 
                 var connectionString = BuildConnectionString(serverInstance, authType, username, password, "master");
 
@@ -96,17 +96,17 @@ namespace SQLBackupRestore.Services
                     fileList.Add(item);
                 }
 
-                LogMessage($"Found {fileList.Count} file(s) in backup", LogLevel.Info);
+                LogMessage($"📋 Found {fileList.Count} file(s) in backup - looking good!", LogLevel.Info);
                 foreach (var file in fileList)
                 {
-                    LogMessage($"  - {file.LogicalName} (Type: {file.Type})", LogLevel.Info);
+                    LogMessage($"  📄 {file.LogicalName} ({file.Type})", LogLevel.Info);
                 }
 
                 return fileList;
             }
             catch (Exception ex)
             {
-                LogMessage($"Failed to read backup file structure: {ex.Message}", LogLevel.Error);
+                LogMessage($"❌ Failed to read backup file: {ex.Message}", LogLevel.Error);
                 throw;
             }
         }
@@ -160,11 +160,12 @@ namespace SQLBackupRestore.Services
             try
             {
                 // Get file list from backup
+                LogMessage("🔍 Step 1: Analyzing your backup file...", LogLevel.Info);
                 var fileList = await GetBackupFileListAsync(serverInstance, authType, backupFilePath, username, password);
 
                 if (fileList.Count == 0)
                 {
-                    LogMessage("No files found in backup", LogLevel.Error);
+                    LogMessage("❌ No files found in backup", LogLevel.Error);
                     return false;
                 }
 
@@ -174,17 +175,18 @@ namespace SQLBackupRestore.Services
 
                 if (dataFile == null)
                 {
-                    LogMessage("No data file found in backup", LogLevel.Error);
+                    LogMessage("❌ No data file found in backup", LogLevel.Error);
                     return false;
                 }
 
                 // Ensure directories exist
-                LogMessage($"Creating directory: {Path.GetDirectoryName(dataFilePath)}", LogLevel.Info);
+                LogMessage("📁 Step 2: Creating folders for your database...", LogLevel.Info);
+                LogMessage($"   Creating: {Path.GetDirectoryName(dataFilePath)}", LogLevel.Info);
                 Directory.CreateDirectory(Path.GetDirectoryName(dataFilePath)!);
 
                 if (logFile != null)
                 {
-                    LogMessage($"Creating directory: {Path.GetDirectoryName(logFilePath)}", LogLevel.Info);
+                    LogMessage($"   Creating: {Path.GetDirectoryName(logFilePath)}", LogLevel.Info);
                     Directory.CreateDirectory(Path.GetDirectoryName(logFilePath)!);
                 }
 
@@ -208,10 +210,11 @@ namespace SQLBackupRestore.Services
                 restoreCommand.AppendLine("  RECOVERY,");
                 restoreCommand.AppendLine("  STATS = 10");
 
-                LogMessage("Starting database restore...", LogLevel.Info);
-                LogMessage($"Database: {databaseName}", LogLevel.Info);
-                LogMessage($"Data file: {dataFilePath}", LogLevel.Info);
-                LogMessage($"Log file: {logFilePath}", LogLevel.Info);
+                LogMessage("🚀 Step 3: Starting the database restore...", LogLevel.Info);
+                LogMessage($"   📦 Database: {databaseName}", LogLevel.Info);
+                LogMessage($"   💾 Data file: {dataFilePath}", LogLevel.Info);
+                LogMessage($"   📝 Log file: {logFilePath}", LogLevel.Info);
+                LogMessage("⏳ Please wait while we restore your database (this may take a few minutes)...", LogLevel.Info);
 
                 var connectionString = BuildConnectionString(serverInstance, authType, username, password, "master");
 
@@ -225,7 +228,16 @@ namespace SQLBackupRestore.Services
                     {
                         if (error.Class <= 10) // Informational messages
                         {
-                            LogMessage(error.Message, LogLevel.Info);
+                            // Add progress emojis
+                            var msg = error.Message;
+                            if (msg.Contains("percent"))
+                            {
+                                LogMessage($"⏳ {msg}", LogLevel.Info);
+                            }
+                            else
+                            {
+                                LogMessage($"   {msg}", LogLevel.Info);
+                            }
                         }
                     }
                 };
@@ -237,27 +249,28 @@ namespace SQLBackupRestore.Services
 
                 await command.ExecuteNonQueryAsync();
 
-                LogMessage($"Database '{databaseName}' restored successfully!", LogLevel.Success);
-                LogMessage($"Data file location: {dataFilePath}", LogLevel.Success);
-                LogMessage($"Log file location: {logFilePath}", LogLevel.Success);
+                LogMessage($"🎉 SUCCESS! Database '{databaseName}' restored successfully!", LogLevel.Success);
+                LogMessage($"✅ Data file: {dataFilePath}", LogLevel.Success);
+                LogMessage($"✅ Log file: {logFilePath}", LogLevel.Success);
+                LogMessage("🎊 All done! Your database is ready to use!", LogLevel.Success);
 
                 return true;
             }
             catch (SqlException sqlEx)
             {
-                LogMessage($"SQL Error during restore: {sqlEx.Message}", LogLevel.Error);
+                LogMessage($"❌ SQL Error during restore: {sqlEx.Message}", LogLevel.Error);
 
                 // Log additional SQL error details
                 foreach (SqlError error in sqlEx.Errors)
                 {
-                    LogMessage($"  SQL Error {error.Number}: {error.Message}", LogLevel.Error);
+                    LogMessage($"   ⚠️ SQL Error {error.Number}: {error.Message}", LogLevel.Error);
                 }
 
                 return false;
             }
             catch (Exception ex)
             {
-                LogMessage($"Restore failed: {ex.Message}", LogLevel.Error);
+                LogMessage($"❌ Restore failed: {ex.Message}", LogLevel.Error);
                 return false;
             }
         }
