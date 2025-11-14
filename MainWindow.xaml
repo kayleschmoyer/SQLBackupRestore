@@ -6,11 +6,11 @@
         xmlns:local="clr-namespace:SQLBackupRestore"
         xmlns:models="clr-namespace:SQLBackupRestore.Models"
         mc:Ignorable="d"
-        Title="🎯 VastOffice Database Restore Tool - Easy as 1-2-3!"
-        Height="900"
-        Width="1000"
-        MinHeight="700"
-        MinWidth="900"
+        Title="VastOffice Database Restore Tool"
+        Height="700"
+        Width="800"
+        MinHeight="600"
+        MinWidth="700"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
         Background="#F0F4F8">
@@ -33,16 +33,16 @@
         <Style x:Key="BigFriendlyButton" TargetType="Button">
             <Setter Property="Background" Value="#4CAF50"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Padding" Value="30,15"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,8"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
-                                CornerRadius="8"
+                                CornerRadius="4"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -60,44 +60,14 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Secondary button style -->
-        <Style x:Key="SecondaryFriendlyButton" TargetType="Button">
-            <Setter Property="Background" Value="#2196F3"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="25,12"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="6"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#1976D2"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#CCCCCC"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
         <!-- GroupBox style -->
         <Style TargetType="GroupBox">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#E0E0E0"/>
-            <Setter Property="BorderThickness" Value="2"/>
-            <Setter Property="Padding" Value="15"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="GroupBox">
@@ -105,16 +75,16 @@
                             <Border Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="8">
+                                    CornerRadius="4">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <Border Grid.Row="0" Background="#F5F5F5" CornerRadius="6,6,0,0" Padding="12,8">
+                                    <Border Grid.Row="0" Background="#F5F5F5" Padding="8,6">
                                         <ContentPresenter ContentSource="Header"
-                                                        TextBlock.FontWeight="Bold"
-                                                        TextBlock.FontSize="16"
+                                                        TextBlock.FontWeight="SemiBold"
+                                                        TextBlock.FontSize="14"
                                                         TextBlock.Foreground="#333333"/>
                                     </Border>
                                     <ContentPresenter Grid.Row="1" Margin="{TemplateBinding Padding}"/>
@@ -159,31 +129,26 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="20">
+    <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/> <!-- Header -->
             <RowDefinition Height="*"/>    <!-- Content -->
         </Grid.RowDefinitions>
 
         <!-- Header Section -->
-        <Border Grid.Row="0" Background="White" CornerRadius="10" Padding="20" Margin="0,0,0,20"
-                BorderBrush="#4CAF50" BorderThickness="0,0,0,4">
+        <Border Grid.Row="0" Background="White" CornerRadius="6" Padding="15" Margin="0,0,0,15"
+                BorderBrush="#2196F3" BorderThickness="0,0,0,3">
             <StackPanel>
-                <TextBlock Text="🎯 VastOffice Database Restore Tool"
-                           FontSize="28"
+                <TextBlock Text="Database Restore Tool"
+                           FontSize="22"
                            FontWeight="Bold"
                            Foreground="#333333"
                            HorizontalAlignment="Center"/>
-                <TextBlock Text="Easy as 1-2-3! Restore your database with just a few clicks"
-                           FontSize="16"
+                <TextBlock Text="{Binding CurrentWindowsUser, StringFormat='Logged in as: {0}'}"
+                           FontSize="12"
                            Foreground="#666666"
                            HorizontalAlignment="Center"
-                           Margin="0,8,0,0"/>
-                <TextBlock Text="{Binding CurrentWindowsUser, StringFormat='👤 Logged in as: {0}'}"
-                           FontSize="14"
-                           Foreground="#888888"
-                           HorizontalAlignment="Center"
-                           Margin="0,8,0,0"/>
+                           Margin="0,5,0,0"/>
             </StackPanel>
         </Border>
 
@@ -192,49 +157,28 @@
             <StackPanel>
 
                 <!-- Step 1: Database Type Selection -->
-                <GroupBox Header="📍 STEP 1: Choose Your Database Type">
+                <GroupBox Header="Step 1: Database Type">
                     <StackPanel>
-                        <Label Content="Is this for an Office or a Shop?" FontWeight="SemiBold" FontSize="15"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0" HorizontalAlignment="Center">
-                            <RadioButton Content="🏢 Office (VastOffice)"
+                        <Label Content="Database Type:" FontWeight="SemiBold"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <RadioButton Content="Office (VastOffice)"
                                         IsChecked="{Binding DatabaseType, Converter={x:Static local:EnumToBooleanConverter.Instance}, ConverterParameter={x:Static models:DatabaseType.Office}}"
                                         IsEnabled="{Binding CanModifySettings}"
-                                        Margin="0,0,40,0"
-                                        FontSize="16"
-                                        FontWeight="SemiBold"/>
-                            <RadioButton Content="🛒 Shop (VastPOS)"
+                                        Margin="0,0,30,0"/>
+                            <RadioButton Content="Shop (VastPOS)"
                                         IsChecked="{Binding DatabaseType, Converter={x:Static local:EnumToBooleanConverter.Instance}, ConverterParameter={x:Static models:DatabaseType.Shop}}"
-                                        IsEnabled="{Binding CanModifySettings}"
-                                        FontSize="16"
-                                        FontWeight="SemiBold"/>
+                                        IsEnabled="{Binding CanModifySettings}"/>
                         </StackPanel>
 
-                        <TextBlock Text="{Binding SqlServerInstance, StringFormat='🔌 Connected to: {0}'}"
-                                   Margin="0,15,0,0"
-                                   FontSize="14"
-                                   Foreground="#666666"
-                                   HorizontalAlignment="Center"/>
-
-                        <!-- Box Type Information -->
-                        <Border Background="#E3F2FD"
-                                CornerRadius="6"
-                                Padding="10,6"
-                                Margin="0,10,0,0"
-                                HorizontalAlignment="Center"
-                                Visibility="{Binding BoxTypeDescription, Converter={StaticResource StringToVisibilityConverter}}">
-                            <TextBlock Text="{Binding BoxTypeDescription}"
-                                      FontSize="13"
-                                      FontWeight="SemiBold"
-                                      Foreground="#1976D2"
-                                      HorizontalAlignment="Center"/>
-                        </Border>
+                        <Label Content="SQL Server Instance:" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                        <TextBox Text="{Binding SqlServerInstance, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{Binding CanModifySettings}"/>
 
                         <!-- Connection Status -->
                         <TextBlock Text="{Binding ConnectionStatus}"
                                   Margin="0,8,0,0"
-                                  FontWeight="Bold"
-                                  FontSize="14"
-                                  HorizontalAlignment="Center"
+                                  FontWeight="SemiBold"
+                                  FontSize="13"
                                   Visibility="{Binding ConnectionStatus, Converter={StaticResource StringToVisibilityConverter}}">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
@@ -251,160 +195,100 @@
                 </GroupBox>
 
                 <!-- Step 2: Backup File Selection Section -->
-                <GroupBox Header="📂 STEP 2: Choose Your Backup File">
+                <GroupBox Header="Step 2: Backup File">
                     <StackPanel>
-                        <Label Content="Click below to find your .BAK backup file:" FontWeight="SemiBold" FontSize="15"/>
-                        <Button Content="📁 Browse for .BAK File..."
-                                Command="{Binding BrowseBackupFileCommand}"
-                                HorizontalAlignment="Center"
-                                Style="{StaticResource SecondaryFriendlyButton}"
-                                Margin="0,12,0,0"/>
-
-                        <StackPanel Visibility="{Binding BackupFilePath, Converter={StaticResource StringToVisibilityConverter}}"
-                                    Margin="0,15,0,0">
-                            <Label Content="✅ Selected File:" FontWeight="Bold" Foreground="#4CAF50"/>
-                            <TextBox Text="{Binding BackupFilePath, Mode=OneWay}"
+                        <Label Content="Backup File (.bak):" FontWeight="SemiBold"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                    Text="{Binding BackupFilePath, Mode=OneWay}"
                                     IsReadOnly="True"
-                                    Background="#E8F5E9"
-                                    FontSize="13"
-                                    ToolTip="{Binding BackupFilePath}"/>
-
-                            <StackPanel Visibility="{Binding BackupBaseName, Converter={StaticResource StringToVisibilityConverter}}"
-                                        Margin="0,10,0,0">
-                                <Label Content="📦 Detected Backup Name:" FontWeight="SemiBold"/>
-                                <TextBlock Text="{Binding BackupBaseName}"
-                                          FontWeight="Bold"
-                                          FontSize="16"
-                                          Foreground="#2196F3"
-                                          Margin="10,4,0,0"/>
-                            </StackPanel>
-                        </StackPanel>
+                                    Margin="0,0,10,0"/>
+                            <Button Grid.Column="1"
+                                    Content="Browse..."
+                                    Command="{Binding BrowseBackupFileCommand}"
+                                    Padding="15,5"/>
+                        </Grid>
                     </StackPanel>
                 </GroupBox>
 
                 <!-- Step 3: Database Details Section -->
-                <GroupBox Header="⚙️ STEP 3: Review Your Settings">
+                <GroupBox Header="Step 3: Database Settings">
                     <StackPanel>
                         <Label Content="Database Name:" FontWeight="SemiBold"/>
                         <TextBox Text="{Binding DatabaseName, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{Binding CanModifySettings}"/>
+
+                        <Label Content="Data File Folder:" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                        <TextBox Text="{Binding DataFileFolder, UpdateSourceTrigger=PropertyChanged}"
                                 IsEnabled="{Binding CanModifySettings}"
-                                ToolTip="The name for the restored database"
-                                FontSize="15"
-                                FontWeight="SemiBold"/>
+                                ToolTip="Directory where .mdf file will be stored"/>
 
-                        <Border Background="#FFF3E0" CornerRadius="6" Padding="12" Margin="0,15,0,0">
-                            <StackPanel>
-                                <Label Content="📁 Files will be saved as:" FontWeight="Bold" Foreground="#FF6F00"/>
-                                <TextBlock Text="• VastOffice.mdf (data file)"
-                                          FontSize="14"
-                                          Margin="10,5,0,0"/>
-                                <TextBlock Text="• VastOffice_log.ldf (log file)"
-                                          FontSize="14"
-                                          Margin="10,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Label Content="💾 Data File Location (E: Drive):" FontWeight="SemiBold" Margin="0,15,0,0"/>
-                        <TextBox Text="{Binding DataFileFolder, Mode=OneWay}"
-                                IsReadOnly="True"
-                                Background="#F5F5F5"
-                                FontFamily="Consolas"
-                                FontSize="13"/>
-
-                        <Label Content="📝 Log File Location (F: Drive):" FontWeight="SemiBold" Margin="0,10,0,0"/>
-                        <TextBox Text="{Binding LogFileFolder, Mode=OneWay}"
-                                IsReadOnly="True"
-                                Background="#F5F5F5"
-                                FontFamily="Consolas"
-                                FontSize="13"/>
+                        <Label Content="Log File Folder:" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                        <TextBox Text="{Binding LogFileFolder, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{Binding CanModifySettings}"
+                                ToolTip="Directory where .ldf file will be stored"/>
 
                         <!-- Replace Existing Database Option -->
-                        <CheckBox Content="🔄 Replace existing database if it exists"
+                        <CheckBox Content="Replace existing database if it exists"
                                  IsChecked="{Binding ReplaceExistingDatabase}"
                                  IsEnabled="{Binding CanModifySettings}"
-                                 Margin="0,15,0,0"
-                                 FontWeight="SemiBold"
-                                 FontSize="14"/>
+                                 Margin="0,12,0,0"/>
                     </StackPanel>
                 </GroupBox>
 
                 <!-- Step 4: Actions & Status Section -->
-                <GroupBox Header="🚀 STEP 4: Let's Do This!">
+                <GroupBox Header="Step 4: Restore">
                     <StackPanel>
                         <!-- Restore Button -->
-                        <Button Content="🎉 RESTORE DATABASE NOW!"
+                        <Button Content="Restore Database"
                                 Command="{Binding RestoreDatabaseCommand}"
                                 Style="{StaticResource BigFriendlyButton}"
                                 HorizontalAlignment="Center"
-                                Margin="0,10,0,20"/>
-
-                        <!-- Animated Spinner -->
-                        <StackPanel Orientation="Horizontal"
-                                    HorizontalAlignment="Center"
-                                    Margin="0,0,0,15"
-                                    Visibility="{Binding IsRestoring, Converter={StaticResource BoolToVisibility}}">
-                            <Canvas Width="40" Height="40" Margin="0,0,15,0">
-                                <Canvas.RenderTransform>
-                                    <RotateTransform x:Name="SpinnerRotate" CenterX="20" CenterY="20"/>
-                                </Canvas.RenderTransform>
-                                <Canvas.Triggers>
-                                    <EventTrigger RoutedEvent="Canvas.Loaded">
-                                        <BeginStoryboard Storyboard="{StaticResource SpinnerAnimation}"/>
-                                    </EventTrigger>
-                                </Canvas.Triggers>
-                                <Ellipse Width="40" Height="40" Stroke="#2196F3" StrokeThickness="4"
-                                        StrokeDashArray="30 10"/>
-                            </Canvas>
-                            <TextBlock Text="Working on it... Please wait!"
-                                      FontSize="16"
-                                      FontWeight="Bold"
-                                      Foreground="#2196F3"
-                                      VerticalAlignment="Center"/>
-                        </StackPanel>
+                                Padding="25,10"
+                                Margin="0,5,0,10"/>
 
                         <!-- Progress Bar -->
-                        <ProgressBar Height="30"
+                        <ProgressBar Height="20"
                                     Value="{Binding ProgressValue}"
                                     IsIndeterminate="{Binding IsProgressIndeterminate}"
                                     Visibility="{Binding IsRestoring, Converter={StaticResource BoolToVisibility}}"
-                                    Margin="0,0,0,15"
+                                    Margin="0,0,0,10"
                                     Background="#E0E0E0"
                                     Foreground="#4CAF50"/>
 
                         <!-- Log Panel -->
-                        <Label Content="📋 What's Happening:" FontWeight="Bold" FontSize="15"/>
+                        <Label Content="Status Log:" FontWeight="SemiBold"/>
                         <Border BorderBrush="#CCCCCC"
-                                BorderThickness="2"
-                                Background="White"
-                                CornerRadius="6">
-                            <ScrollViewer Height="280"
+                                BorderThickness="1"
+                                Background="White">
+                            <ScrollViewer Height="200"
                                          VerticalScrollBarVisibility="Auto"
                                          HorizontalScrollBarVisibility="Auto">
                                 <ItemsControl ItemsSource="{Binding LogEntries}"
-                                             Padding="12">
+                                             Padding="8">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding FormattedMessage}"
-                                                      FontFamily="Segoe UI"
-                                                      FontSize="13"
+                                                      FontFamily="Consolas"
+                                                      FontSize="11"
                                                       TextWrapping="Wrap"
-                                                      Margin="0,2"
-                                                      Padding="4">
+                                                      Margin="0,1">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Foreground" Value="#333333"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Level}" Value="Success">
                                                                 <Setter Property="Foreground" Value="#4CAF50"/>
-                                                                <Setter Property="FontWeight" Value="Bold"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding Level}" Value="Error">
                                                                 <Setter Property="Foreground" Value="#F44336"/>
-                                                                <Setter Property="FontWeight" Value="Bold"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding Level}" Value="Warning">
                                                                 <Setter Property="Foreground" Value="#FF9800"/>
-                                                                <Setter Property="FontWeight" Value="SemiBold"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
