@@ -318,21 +318,23 @@ namespace SQLBackupRestore.Services
             string? password,
             string database)
         {
+            // Normalize server instance name: convert (local) to .
+            var normalizedInstance = serverInstance.Replace("(local)", ".", StringComparison.OrdinalIgnoreCase);
+
             var builder = new SqlConnectionStringBuilder
             {
-                DataSource = serverInstance,
+                DataSource = normalizedInstance,
                 InitialCatalog = database,
+                IntegratedSecurity = authType == AuthenticationType.Windows,
                 TrustServerCertificate = true,
+                Encrypt = false,  // Match SSMS setting - many SQL instances don't have SSL configured
+                Pooling = false,  // Match SSMS setting
+                MultipleActiveResultSets = false,  // Match SSMS setting
                 ConnectTimeout = 30
             };
 
-            if (authType == AuthenticationType.Windows)
+            if (authType == AuthenticationType.SqlServer)
             {
-                builder.IntegratedSecurity = true;
-            }
-            else
-            {
-                builder.IntegratedSecurity = false;
                 builder.UserID = username ?? string.Empty;
                 builder.Password = password ?? string.Empty;
             }
