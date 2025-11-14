@@ -294,32 +294,8 @@ namespace SQLBackupRestore.Services
                     instances.Add(@".\SQLEXPRESS");
                     instances.Add(@"(local)\SQLEXPRESS");
 
-                    // Try to detect using SQL Server browser
-                    try
-                    {
-                        var dataTable = SqlDataSourceEnumerator.Instance.GetDataSources();
-                        foreach (DataRow row in dataTable.Rows)
-                        {
-                            var serverName = row["ServerName"]?.ToString() ?? string.Empty;
-                            var instanceName = row["InstanceName"]?.ToString() ?? string.Empty;
-
-                            if (!string.IsNullOrEmpty(serverName))
-                            {
-                                var fullInstance = string.IsNullOrEmpty(instanceName)
-                                    ? serverName
-                                    : $"{serverName}\\{instanceName}";
-
-                                if (!instances.Contains(fullInstance))
-                                {
-                                    instances.Add(fullInstance);
-                                }
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        // Ignore errors from enumeration
-                    }
+                    // Note: SqlDataSourceEnumerator is not available in modern .NET with Microsoft.Data.SqlClient
+                    // Users can manually enter their server instance name if not in the list above
                 });
 
                 LogMessage($"Found {instances.Count} potential instance(s)", LogLevel.Info);
