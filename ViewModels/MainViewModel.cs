@@ -22,7 +22,7 @@ namespace SQLBackupRestore.ViewModels
         private readonly SqlRestoreService _sqlRestoreService;
 
         // SQL Connection fields
-        private string _sqlServerInstance = "VastOffice"; // Default to VastOffice instance
+        private string _sqlServerInstance = ".\\VastOffice"; // Default to VastOffice instance
         private AuthenticationType _authenticationType = AuthenticationType.Windows;
         private string _username = string.Empty;
         private string _password = string.Empty;
@@ -541,7 +541,7 @@ namespace SQLBackupRestore.ViewModels
                 AddLogEntry("Connecting to SQL Server...", LogLevel.Info);
 
                 // Default to VastOffice instance
-                SqlServerInstance = "VastOffice";
+                SqlServerInstance = ".\\VastOffice";
 
                 // Auto-test connection
                 await TestConnectionAsync();
