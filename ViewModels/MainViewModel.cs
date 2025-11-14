@@ -22,7 +22,7 @@ namespace SQLBackupRestore.ViewModels
         private readonly SqlRestoreService _sqlRestoreService;
 
         // SQL Connection fields
-        private string _sqlServerInstance = "VastOffice"; // Default to VastOffice instance
+        private string _sqlServerInstance = ".\\VastOffice"; // Default to VastOffice instance
         private AuthenticationType _authenticationType = AuthenticationType.Windows;
         private string _username = string.Empty;
         private string _password = string.Empty;
@@ -39,6 +39,7 @@ namespace SQLBackupRestore.ViewModels
 
         // Database details fields
         private string _databaseName = string.Empty;
+        private string _customFolderName = string.Empty;
         private string _dataFileFolder = string.Empty;
         private string _logFileFolder = string.Empty;
 
@@ -216,6 +217,21 @@ namespace SQLBackupRestore.ViewModels
         {
             get => _databaseName;
             set => SetProperty(ref _databaseName, value);
+        }
+
+        /// <summary>
+        /// Custom folder name for the database files.
+        /// </summary>
+        public string CustomFolderName
+        {
+            get => _customFolderName;
+            set
+            {
+                if (SetProperty(ref _customFolderName, value))
+                {
+                    UpdatePlannedFolders();
+                }
+            }
         }
 
         /// <summary>
@@ -525,7 +541,7 @@ namespace SQLBackupRestore.ViewModels
                 AddLogEntry("Connecting to SQL Server...", LogLevel.Info);
 
                 // Default to VastOffice instance
-                SqlServerInstance = "VastOffice";
+                SqlServerInstance = ".\\VastOffice";
 
                 // Auto-test connection
                 await TestConnectionAsync();
@@ -555,6 +571,7 @@ namespace SQLBackupRestore.ViewModels
                 var fileName = Path.GetFileNameWithoutExtension(BackupFilePath);
                 BackupBaseName = fileName;
                 DatabaseName = fileName; // Auto-populate database name
+                CustomFolderName = fileName; // Auto-populate custom folder name
             }
             else
             {
@@ -564,7 +581,7 @@ namespace SQLBackupRestore.ViewModels
 
         private void UpdatePlannedFolders()
         {
-            if (string.IsNullOrWhiteSpace(BackupBaseName))
+            if (string.IsNullOrWhiteSpace(CustomFolderName))
             {
                 DataFileFolder = string.Empty;
                 LogFileFolder = string.Empty;
@@ -576,20 +593,20 @@ namespace SQLBackupRestore.ViewModels
             // Try E: and F: drives first, but allow user to change
             if (Directory.Exists("E:\\"))
             {
-                DataFileFolder = $@"E:\SQLData\{typeFolder}\{BackupBaseName}\";
+                DataFileFolder = $@"E:\SQLData\{typeFolder}\{CustomFolderName}\";
             }
             else
             {
-                DataFileFolder = $@"C:\SQLData\{typeFolder}\{BackupBaseName}\";
+                DataFileFolder = $@"C:\SQLData\{typeFolder}\{CustomFolderName}\";
             }
 
             if (Directory.Exists("F:\\"))
             {
-                LogFileFolder = $@"F:\{typeFolder}\{BackupBaseName}\";
+                LogFileFolder = $@"F:\{typeFolder}\{CustomFolderName}\";
             }
             else
             {
-                LogFileFolder = $@"C:\SQLLogs\{typeFolder}\{BackupBaseName}\";
+                LogFileFolder = $@"C:\SQLLogs\{typeFolder}\{CustomFolderName}\";
             }
         }
 

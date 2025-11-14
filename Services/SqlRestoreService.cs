@@ -37,18 +37,72 @@ namespace SQLBackupRestore.Services
             try
             {
                 LogMessage("🔌 Testing connection to SQL Server...", LogLevel.Info);
+                LogMessage($"   Server: {serverInstance}", LogLevel.Info);
+                LogMessage($"   Auth Type: {authType}", LogLevel.Info);
 
                 var connectionString = BuildConnectionString(serverInstance, authType, username, password, "master");
 
                 using var connection = new SqlConnection(connectionString);
                 await connection.OpenAsync();
 
+                // Get SQL Server version info
+                var versionCommand = new SqlCommand("SELECT @@VERSION", connection);
+                var version = await versionCommand.ExecuteScalarAsync();
+
                 LogMessage($"✅ Woohoo! Successfully connected to {serverInstance}!", LogLevel.Success);
+                LogMessage($"   Server Version: {version?.ToString()?.Split('\n')[0]}", LogLevel.Info);
                 return true;
+            }
+            catch (SqlException sqlEx)
+            {
+                LogMessage($"❌ SQL Server connection failed!", LogLevel.Error);
+                LogMessage($"   Error Number: {sqlEx.Number}", LogLevel.Error);
+                LogMessage($"   Error Message: {sqlEx.Message}", LogLevel.Error);
+
+                // Provide specific troubleshooting guidance based on error number
+                switch (sqlEx.Number)
+                {
+                    case 53:
+                    case -1:
+                        LogMessage("", LogLevel.Error);
+                        LogMessage("🔧 TROUBLESHOOTING TIPS:", LogLevel.Warning);
+                        LogMessage("   1. Verify the server name/instance is correct", LogLevel.Warning);
+                        LogMessage("      - For named instances use: SERVERNAME\\INSTANCENAME", LogLevel.Warning);
+                        LogMessage("      - For default instance use: SERVERNAME", LogLevel.Warning);
+                        LogMessage("      - Example: MYSERVER\\SQLEXPRESS or just MYSERVER", LogLevel.Warning);
+                        LogMessage("   2. Ensure SQL Server Browser service is running (for named instances)", LogLevel.Warning);
+                        LogMessage("   3. Enable TCP/IP protocol in SQL Server Configuration Manager", LogLevel.Warning);
+                        LogMessage("   4. Check Windows Firewall settings (allow port 1433 for default, 1434 for Browser)", LogLevel.Warning);
+                        LogMessage("   5. Verify 'Allow remote connections' is enabled in SQL Server properties", LogLevel.Warning);
+                        break;
+                    case 18456:
+                        LogMessage("", LogLevel.Error);
+                        LogMessage("🔧 TROUBLESHOOTING TIPS:", LogLevel.Warning);
+                        LogMessage("   - Login failed - check username and password", LogLevel.Warning);
+                        LogMessage("   - For Windows Auth: ensure the current user has access", LogLevel.Warning);
+                        LogMessage("   - For SQL Auth: verify SQL Server authentication is enabled", LogLevel.Warning);
+                        break;
+                    case 4060:
+                        LogMessage("", LogLevel.Error);
+                        LogMessage("🔧 TROUBLESHOOTING TIPS:", LogLevel.Warning);
+                        LogMessage("   - Database not found or access denied", LogLevel.Warning);
+                        LogMessage("   - Verify you have permissions to access the database", LogLevel.Warning);
+                        break;
+                    default:
+                        LogMessage("", LogLevel.Error);
+                        LogMessage("🔧 TROUBLESHOOTING TIPS:", LogLevel.Warning);
+                        LogMessage("   - Check SQL Server error logs for more details", LogLevel.Warning);
+                        LogMessage("   - Verify SQL Server service is running", LogLevel.Warning);
+                        LogMessage("   - Try connecting with SQL Server Management Studio first", LogLevel.Warning);
+                        break;
+                }
+
+                return false;
             }
             catch (Exception ex)
             {
-                LogMessage($"❌ Oops! Connection failed: {ex.Message}", LogLevel.Error);
+                LogMessage($"❌ Unexpected connection error: {ex.Message}", LogLevel.Error);
+                LogMessage($"   Exception Type: {ex.GetType().Name}", LogLevel.Error);
                 return false;
             }
         }
@@ -325,12 +379,16 @@ namespace SQLBackupRestore.Services
             {
                 DataSource = normalizedInstance,
                 InitialCatalog = database,
-                IntegratedSecurity = authType == AuthenticationType.Windows,
-                TrustServerCertificate = true,
-                Encrypt = false,  // Match SSMS setting - many SQL instances don't have SSL configured
-                Pooling = false,  // Match SSMS setting
-                MultipleActiveResultSets = false,  // Match SSMS setting
-                ConnectTimeout = 30
+                Encrypt = false,  // Disable encryption for servers without SSL certificates
+                TrustServerCertificate = true,  // Trust server certificate
+                ConnectTimeout = 30,  // 30 seconds to establish connection
+                ConnectRetryCount = 3,  // Retry connection 3 times
+                ConnectRetryInterval = 10,  // Wait 10 seconds between retries
+                MultipleActiveResultSets = true,  // Allow multiple result sets
+                ApplicationIntent = ApplicationIntent.ReadWrite,  // Specify read/write intent
+                Pooling = true,  // Enable connection pooling
+                MinPoolSize = 0,
+                MaxPoolSize = 100
             };
 
             if (authType == AuthenticationType.SqlServer)
