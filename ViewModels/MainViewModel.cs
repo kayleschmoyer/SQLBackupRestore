@@ -84,6 +84,8 @@ namespace SQLBackupRestore.ViewModels
                 {
                     ConnectionStatus = string.Empty;
                     IsConnectionSuccessful = false;
+                    // Automatically test connection when instance changes
+                    _ = TestConnectionAsync();
                 }
             }
         }
@@ -195,8 +197,9 @@ namespace SQLBackupRestore.ViewModels
             {
                 if (SetProperty(ref _databaseType, value))
                 {
-                    UpdateInstanceBasedOnType();
                     UpdatePlannedFolders();
+                    // Automatically test connection when radio button changes
+                    _ = TestConnectionAsync();
                 }
             }
         }
@@ -550,18 +553,6 @@ namespace SQLBackupRestore.ViewModels
             {
                 // Ignore errors during initialization
             }
-        }
-
-        private void UpdateInstanceBasedOnType()
-        {
-            // Update SQL instance based on database type
-            SqlServerInstance = DatabaseType == DatabaseType.Office ? ".\\VastOffice" : ".\\VastPOS";
-
-            // Reset connection status when changing instance
-            ConnectionStatus = string.Empty;
-            IsConnectionSuccessful = false;
-
-            AddLogEntry($"Switched to {SqlServerInstance} instance", LogLevel.Info);
         }
 
         private void UpdateBackupBaseName()
