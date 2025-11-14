@@ -29,6 +29,8 @@ namespace SQLBackupRestore.ViewModels
         private string _connectionStatus = string.Empty;
         private bool _isConnectionSuccessful;
         private string _currentWindowsUser = string.Empty;
+        private BoxType _detectedBoxType = BoxType.General;
+        private string _boxTypeDescription = string.Empty;
 
         // Backup file fields
         private string _backupFilePath = string.Empty;
@@ -83,8 +85,27 @@ namespace SQLBackupRestore.ViewModels
                 {
                     ConnectionStatus = string.Empty;
                     IsConnectionSuccessful = false;
+                    DetectBoxTypeFromServerName();
                 }
             }
+        }
+
+        /// <summary>
+        /// Detected box type based on server name pattern.
+        /// </summary>
+        public BoxType DetectedBoxType
+        {
+            get => _detectedBoxType;
+            private set => SetProperty(ref _detectedBoxType, value);
+        }
+
+        /// <summary>
+        /// Friendly description of the detected box type.
+        /// </summary>
+        public string BoxTypeDescription
+        {
+            get => _boxTypeDescription;
+            private set => SetProperty(ref _boxTypeDescription, value);
         }
 
         /// <summary>
@@ -523,6 +544,29 @@ namespace SQLBackupRestore.ViewModels
         #endregion
 
         #region Helper Methods
+
+        /// <summary>
+        /// Detects the box type from the current SQL Server instance name.
+        /// </summary>
+        private void DetectBoxTypeFromServerName()
+        {
+            var boxType = ServerHelper.DetectBoxType(SqlServerInstance);
+            DetectedBoxType = boxType;
+            BoxTypeDescription = ServerHelper.GetBoxTypeDescription(boxType);
+
+            // If it's a specific box type (not General), suggest the database type
+            var suggestedType = ServerHelper.GetSuggestedDatabaseType(boxType);
+            if (suggestedType.HasValue && !IsConnectionSuccessful)
+            {
+                // Only auto-suggest if we haven't connected yet
+                DatabaseType = suggestedType.Value;
+                AddLogEntry($"💡 Detected {BoxTypeDescription} - auto-selected {DatabaseType} database type", LogLevel.Info);
+            }
+            else if (boxType == BoxType.General)
+            {
+                AddLogEntry($"ℹ️ {BoxTypeDescription}", LogLevel.Info);
+            }
+        }
 
         private async Task InitializeAsync()
         {
