@@ -322,6 +322,7 @@ namespace SQLBackupRestore.Services
             {
                 DataSource = serverInstance,
                 InitialCatalog = database,
+                Encrypt = false,  // Required for local instances without SSL certificates
                 TrustServerCertificate = true,
                 ConnectTimeout = 30
             };
