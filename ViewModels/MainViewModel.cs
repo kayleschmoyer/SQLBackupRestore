@@ -29,8 +29,6 @@ namespace SQLBackupRestore.ViewModels
         private string _connectionStatus = string.Empty;
         private bool _isConnectionSuccessful;
         private string _currentWindowsUser = string.Empty;
-        private BoxType _detectedBoxType = BoxType.General;
-        private string _boxTypeDescription = string.Empty;
 
         // Backup file fields
         private string _backupFilePath = string.Empty;
@@ -85,27 +83,8 @@ namespace SQLBackupRestore.ViewModels
                 {
                     ConnectionStatus = string.Empty;
                     IsConnectionSuccessful = false;
-                    DetectBoxTypeFromServerName();
                 }
             }
-        }
-
-        /// <summary>
-        /// Detected box type based on server name pattern.
-        /// </summary>
-        public BoxType DetectedBoxType
-        {
-            get => _detectedBoxType;
-            private set => SetProperty(ref _detectedBoxType, value);
-        }
-
-        /// <summary>
-        /// Friendly description of the detected box type.
-        /// </summary>
-        public string BoxTypeDescription
-        {
-            get => _boxTypeDescription;
-            private set => SetProperty(ref _boxTypeDescription, value);
         }
 
         /// <summary>
@@ -240,21 +219,21 @@ namespace SQLBackupRestore.ViewModels
         }
 
         /// <summary>
-        /// Planned data file folder on E: drive.
+        /// Data file folder.
         /// </summary>
         public string DataFileFolder
         {
             get => _dataFileFolder;
-            private set => SetProperty(ref _dataFileFolder, value);
+            set => SetProperty(ref _dataFileFolder, value);
         }
 
         /// <summary>
-        /// Planned log file folder on F: drive.
+        /// Log file folder.
         /// </summary>
         public string LogFileFolder
         {
             get => _logFileFolder;
-            private set => SetProperty(ref _logFileFolder, value);
+            set => SetProperty(ref _logFileFolder, value);
         }
 
         /// <summary>
@@ -418,11 +397,10 @@ namespace SQLBackupRestore.ViewModels
             if (string.IsNullOrWhiteSpace(DatabaseName))
                 return false;
 
-            // Check if E: and F: drives exist
-            if (!Directory.Exists("E:\\"))
+            if (string.IsNullOrWhiteSpace(DataFileFolder))
                 return false;
 
-            if (!Directory.Exists("F:\\"))
+            if (string.IsNullOrWhiteSpace(LogFileFolder))
                 return false;
 
             return true;
@@ -439,24 +417,18 @@ namespace SQLBackupRestore.ViewModels
 
                 AddLogEntry("Starting database restore process...", LogLevel.Info);
 
-                // Validate drives exist
-                if (!Directory.Exists("E:\\"))
+                // Ensure directories exist
+                try
                 {
-                    AddLogEntry("E: drive not found. This tool requires E: for data files.", LogLevel.Error);
-                    MessageBox.Show(
-                        "E: drive not found. This tool requires E: drive for data files and F: drive for log files.",
-                        "Drive Not Found",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                    return;
+                    Directory.CreateDirectory(DataFileFolder);
+                    Directory.CreateDirectory(LogFileFolder);
                 }
-
-                if (!Directory.Exists("F:\\"))
+                catch (Exception ex)
                 {
-                    AddLogEntry("F: drive not found. This tool requires F: for log files.", LogLevel.Error);
+                    AddLogEntry($"Failed to create directories: {ex.Message}", LogLevel.Error);
                     MessageBox.Show(
-                        "F: drive not found. This tool requires E: drive for data files and F: drive for log files.",
-                        "Drive Not Found",
+                        $"Failed to create directories:\n{ex.Message}",
+                        "Directory Error",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
                     return;
@@ -545,42 +517,15 @@ namespace SQLBackupRestore.ViewModels
 
         #region Helper Methods
 
-        /// <summary>
-        /// Detects the box type from the current SQL Server instance name.
-        /// </summary>
-        private void DetectBoxTypeFromServerName()
-        {
-            var boxType = ServerHelper.DetectBoxType(SqlServerInstance);
-            DetectedBoxType = boxType;
-            BoxTypeDescription = ServerHelper.GetBoxTypeDescription(boxType);
-
-            // If it's a specific box type (not General), suggest the database type
-            var suggestedType = ServerHelper.GetSuggestedDatabaseType(boxType);
-            if (suggestedType.HasValue && !IsConnectionSuccessful)
-            {
-                // Only auto-suggest if we haven't connected yet
-                DatabaseType = suggestedType.Value;
-                AddLogEntry($"💡 Detected {BoxTypeDescription} - auto-selected {DatabaseType} database type", LogLevel.Info);
-            }
-            else if (boxType == BoxType.General)
-            {
-                AddLogEntry($"ℹ️ {BoxTypeDescription}", LogLevel.Info);
-            }
-        }
-
         private async Task InitializeAsync()
         {
             try
             {
-                AddLogEntry($"👋 Welcome {_currentWindowsUser}! Let's restore your database!", LogLevel.Info);
-                AddLogEntry("🔍 Detecting your SQL Server...", LogLevel.Info);
+                AddLogEntry($"Welcome {_currentWindowsUser}", LogLevel.Info);
+                AddLogEntry("Connecting to SQL Server...", LogLevel.Info);
 
                 // Default to VastOffice instance
                 SqlServerInstance = "VastOffice";
-
-                // Try to auto-connect with Windows authentication
-                await Task.Delay(500); // Small delay for visual effect
-                AddLogEntry("🔐 Using Windows Authentication (you're already logged in!)", LogLevel.Info);
 
                 // Auto-test connection
                 await TestConnectionAsync();
@@ -600,7 +545,7 @@ namespace SQLBackupRestore.ViewModels
             ConnectionStatus = string.Empty;
             IsConnectionSuccessful = false;
 
-            AddLogEntry($"🔄 Switched to {SqlServerInstance} instance", LogLevel.Info);
+            AddLogEntry($"Switched to {SqlServerInstance} instance", LogLevel.Info);
         }
 
         private void UpdateBackupBaseName()
@@ -628,8 +573,24 @@ namespace SQLBackupRestore.ViewModels
 
             var typeFolder = DatabaseType == DatabaseType.Office ? "Office" : "Shop";
 
-            DataFileFolder = $@"E:\SQLData\{typeFolder}\{BackupBaseName}\";
-            LogFileFolder = $@"F:\{typeFolder}\{BackupBaseName}\";
+            // Try E: and F: drives first, but allow user to change
+            if (Directory.Exists("E:\\"))
+            {
+                DataFileFolder = $@"E:\SQLData\{typeFolder}\{BackupBaseName}\";
+            }
+            else
+            {
+                DataFileFolder = $@"C:\SQLData\{typeFolder}\{BackupBaseName}\";
+            }
+
+            if (Directory.Exists("F:\\"))
+            {
+                LogFileFolder = $@"F:\{typeFolder}\{BackupBaseName}\";
+            }
+            else
+            {
+                LogFileFolder = $@"C:\SQLLogs\{typeFolder}\{BackupBaseName}\";
+            }
         }
 
         private void OnLogMessageReceived(object? sender, LogEntry e)
