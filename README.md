@@ -93,7 +93,7 @@ Before building, make sure you have:
 ### 🏗️ Step 3: Build the Application
 
 #### Using Visual Studio (Easiest for Testing):
-1. Double-click the `SQLBackupRestore.sln` file
+1. Double-click the `SQLBackupRestore.csproj` file
 2. Visual Studio will open
 3. Press **F5** or click the green **"Start"** button to run and test
 4. The application will launch and you can test it!
