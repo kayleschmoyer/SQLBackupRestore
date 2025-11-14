@@ -19,6 +19,9 @@
         <!-- Converter for boolean to visibility -->
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
+        <!-- Converter for string to visibility -->
+        <local:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+
         <!-- Animated Spinner Storyboard -->
         <Storyboard x:Key="SpinnerAnimation" RepeatBehavior="Forever">
             <DoubleAnimation Storyboard.TargetName="SpinnerRotate"
@@ -211,6 +214,20 @@
                                    FontSize="14"
                                    Foreground="#666666"
                                    HorizontalAlignment="Center"/>
+
+                        <!-- Box Type Information -->
+                        <Border Background="#E3F2FD"
+                                CornerRadius="6"
+                                Padding="10,6"
+                                Margin="0,10,0,0"
+                                HorizontalAlignment="Center"
+                                Visibility="{Binding BoxTypeDescription, Converter={StaticResource StringToVisibilityConverter}}">
+                            <TextBlock Text="{Binding BoxTypeDescription}"
+                                      FontSize="13"
+                                      FontWeight="SemiBold"
+                                      Foreground="#1976D2"
+                                      HorizontalAlignment="Center"/>
+                        </Border>
 
                         <!-- Connection Status -->
                         <TextBlock Text="{Binding ConnectionStatus}"
