@@ -222,6 +222,11 @@
                         <TextBox Text="{Binding DatabaseName, UpdateSourceTrigger=PropertyChanged}"
                                 IsEnabled="{Binding CanModifySettings}"/>
 
+                        <Label Content="Folder Name:" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                        <TextBox Text="{Binding CustomFolderName, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{Binding CanModifySettings}"
+                                ToolTip="Custom name for the database folder (used in the file paths below)"/>
+
                         <Label Content="Data File Folder:" FontWeight="SemiBold" Margin="0,10,0,0"/>
                         <TextBox Text="{Binding DataFileFolder, UpdateSourceTrigger=PropertyChanged}"
                                 IsEnabled="{Binding CanModifySettings}"
