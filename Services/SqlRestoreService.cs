@@ -372,9 +372,12 @@ namespace SQLBackupRestore.Services
             string? password,
             string database)
         {
+            // Normalize server instance name: convert (local) to .
+            var normalizedInstance = serverInstance.Replace("(local)", ".", StringComparison.OrdinalIgnoreCase);
+
             var builder = new SqlConnectionStringBuilder
             {
-                DataSource = serverInstance,
+                DataSource = normalizedInstance,
                 InitialCatalog = database,
                 Encrypt = false,  // Disable encryption for servers without SSL certificates
                 TrustServerCertificate = true,  // Trust server certificate
@@ -388,13 +391,8 @@ namespace SQLBackupRestore.Services
                 MaxPoolSize = 100
             };
 
-            if (authType == AuthenticationType.Windows)
+            if (authType == AuthenticationType.SqlServer)
             {
-                builder.IntegratedSecurity = true;
-            }
-            else
-            {
-                builder.IntegratedSecurity = false;
                 builder.UserID = username ?? string.Empty;
                 builder.Password = password ?? string.Empty;
             }
